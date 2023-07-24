@@ -73,28 +73,6 @@ const typeDefs = `
   }
 
 
-  type Mutation {
-    addBook(
-      title: String!
-      author: String!
-      published: Int
-      genres: [String]
-     ): Book 
-
-    addAuthor(
-      name: String!
-      born: Int
-    ): Author
-
-    editAuthor(
-      name: String!
-      setBornTo: Int
-    ): Author
-    }
-
-
-
-
   type User {
     username: String!
     favoriteGenre: String!
@@ -119,9 +97,25 @@ const typeDefs = `
       username: String!
       password: String!
     ): Token
+
+    addBook(
+      title: String!
+      author: String
+      published: Int!
+      genres: [String]!
+     ): Book 
+
+    addAuthor(
+      name: String!
+      born: Int
+    ): Author
+
+    editAuthor(
+      name: String!
+      setBornTo: Int!
+    ): Author
+    }
   
-  
-  }
 
 
   type Query {
@@ -130,6 +124,10 @@ const typeDefs = `
     allBooks(author: String, genre: String): [Book!]!
     allAuthors: [Author!]!
     Author: String!
+
+    findBookWithGenres(
+      genres: String!
+    ): [Book!]!
   }
 `
 // graphql resolvers
@@ -167,32 +165,80 @@ const resolvers = {
       const b = books.filter(book => book.author === root.name)
       return b.length
       */
+    },
+
+
+    findBookWithGenres: async (root, args) => {
+
+
+      try {
+        console.log('inside findBookWithGenres')
+
+
+        const bookArray = []
+
+        // getting books from DB
+        const books = await Book.find({})
+
+        // putting books to array
+        allBooks = books
+
+        // cunter and empty arrray
+        let count = 0
+        const correctBooks = []
+
+        // while loop to put correct books that have args.genre
+        while (count < allBooks.length) {
+          
+          if (allBooks[count].genres.includes(args.genres)) {
+            correctBooks.push(allBooks[count])
+          }
+          count++
+        }
+
+        console.log('correctBooks', correctBooks)
+        return correctBooks
+
+      } catch (error) {
+        // Handle any errors that might occur during the process
+        console.error('Error finding books:', error);
+        throw error; // You can choose to throw the error or return an error message
+      }
+      
     }
+
   },
 
 
 
 
   Mutation: {
+
     addBook: async (root, args) => {
+      
+      console.log('inside addBook')
+      console.log('current user', args)
+      // book object
+      const book = new Book({
+        title: args.title,
+        published: args.published,
+        author: "unknown",
+        genres: args.genres,
+      })
 
       // error if too short title, author or published is wrong
       if (args.title.length < 5) {
         
         throw new GraphQLError('title too short')
       }
+      /*
       else if (args.author.length < 5) {
         throw new GraphQLError('author too short, got to bee min.185cm')
-      }
-      console.log('insid addBook')
-      const book = new Book({
-        title: args.title,
-        published: args.published,
-        author: args.author,
-        genres: args.genres
-      })
-      return book.save()
+      }*/
 
+
+      console.log('this is book', book)
+      return book.save()
     },
     addAuthor: async (root, args) => {
       console.log('adding author!')
@@ -203,18 +249,32 @@ const resolvers = {
       })
       return author.save()
     },
-    editAuthor: (root, args) => {
+    editAuthor: async (root, args) => {
 
-      console.log('editAuthor', args)
+      console.log('inside editAuthor')
 
-      const author = authors.find(a => a.name === args.name)
+  
+
+      // finding specific author from DB
+      const author = Author.find(a => a.name === args.name)
+
+
+      console.log('author', author)
+      // if dont find author
       if (!author) {
         return null
       }
-      console.log('author', author)
-      const updatedAuthor = { ...author, born: args.setBornTo }
-      authors = authors.map(a => a.name === args.name ? updatedAuthor : a)
+      
+      // auhtor object
+      const updatedAuthor = {
+        name: args.name,
+        born: args.setBornTo
+      }
+
+      authors = Author.map(a => a.name === args.name ? updatedAuthor : a)
       return updatedAuthor
+    
+
     },
 
 
