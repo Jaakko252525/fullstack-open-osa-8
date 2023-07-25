@@ -125,6 +125,8 @@ const typeDefs = `
     allAuthors: [Author!]!
     Author: String!
 
+    authorsBooks(author: String!, genre: String): [Book!]!
+
     findBookWithGenres(
       genres: String!
     ): [Book!]!
@@ -139,16 +141,34 @@ const resolvers = {
     allBooks: async (root, args) => {
       console.log('inside allBooks')
       if (args.author) {
+        console.log('here')
         return Book.collection.filter(book => book.author === args.author);
       }
       else if (args.genre) {
+        console.log('here2')
         return Book.collection.filter(book => book.genres.includes(args.genre))
+      }
+      else if (args.author) {
+        console.log('here3')
+        return Book.collection.filter(book => book.author === args.author)
       }
 
 
-
+      console.log('here3')
       
       return Book.find({});
+    },
+
+    authorsBooks: async (root, args) => {
+      console.log('inside authorsBooks')
+      console.log('args', args)
+
+      const data = Book.collection.find({author: 'Jaakko'})
+
+      console.log('data', data)
+
+      return sii
+
     },
 
     allAuthors: async (root, args) => {
@@ -173,6 +193,14 @@ const resolvers = {
 
       try {
         console.log('inside findBookWithGenres')
+
+        // if args === '' return all
+        if (args.genres === '') {
+
+          // books from DB
+          const books = await Book.find({})
+          return books
+        }
 
 
         const bookArray = []
