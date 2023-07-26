@@ -55,6 +55,23 @@ export const AUTHORS_BOOKS = gql`
 
 `
 
+export const BOOK_DETAILS = gql`
+  fragment BookDetails on Book {
+    title
+    author
+    genre
+  }
+`
+
+export const BOOK_ADDED = gql`
+  subscription {
+    bookAdded {
+      ...BookDetails
+    }
+  }
+  ${BOOK_DETAILS}
+`
+
 
 
 /*

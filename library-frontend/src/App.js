@@ -18,14 +18,12 @@ import {
 } from 'react-router-dom'
 
 // query
-import { useQuery } from '@apollo/client'
+import { useQuery, useApolloClient, useSubscription } from '@apollo/client'
 
 
 // importing query
 import { ALL_AUTHORS, ALL_BOOKS } from './queries/qraphQLQueries'
-import { useApolloClient } from '@apollo/client';
-
-
+import { BOOK_ADDED } from './queries/qraphQLQueries'
 
 
 
@@ -36,6 +34,13 @@ const App = () => {
   const [username, setUsername] = useState('')
   const [genre, setGenre] = useState('')
 
+
+  // subcription
+  useSubscription(BOOK_ADDED, {
+    onData: ({ data }) => {
+      console.log('subs data is',data)
+    }
+  })
 
   const resultAuthors = useQuery(ALL_AUTHORS)
   const resultBooks = useQuery(ALL_BOOKS)
